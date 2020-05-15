@@ -1,0 +1,617 @@
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/libktx.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var engine = null;
+        var scene = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
+        var createScene = function () {
+            var scene = new BABYLON.Scene(engine);
+            scene.gravity= new BABYLON.Vector3(0,-10,0);
+            scene.collisionsEnabled=true;
+            // Light
+            // var spot = new BABYLON.PointLight("spot", new BABYLON.Vector3(0, 300, 10), scene);
+            // spot.diffuse = new BABYLON.Color3(1, 1, 1);
+            // spot.specular = new BABYLON.Color3(0, 0, 0);
+             var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 800, -800), scene);
+
+            // Default intensity is 1. Let's dim the light a small amount
+             light.intensity = 1;
+
+            // Camera
+             var camera = new BABYLON.FreeCamera("Camera",new BABYLON.Vector3(10,8,-40) , scene);
+            camera.applyGravity=true;
+            camera.checkCollisions=true;
+            camera.ellipsoid = new BABYLON.Vector3(1,1,1);
+            camera.attachControl(canvas, true);
+            
+            var camera3 = new BABYLON.FreeCamera("Camera3",new BABYLON.Vector3(30, 40, -15), scene);
+           camera3.layerMask = 2;
+           camera3.setTarget(new BABYLON.Vector3(0,5,30));
+
+           var rt3 = new BABYLON.RenderTargetTexture("depth", 1000, scene, false, false);
+            scene.customRenderTargets.push(rt3);
+            rt3.activeCamera = camera3;
+            rt3.renderList = scene.meshes;
+
+            var mon3 = BABYLON.Mesh.CreatePlane("plane", 5, scene);
+            
+            // mon3.showBoundingBox = true;
+            var mon3mat = new BABYLON.StandardMaterial("texturePlane", scene);
+            mon3mat.diffuseTexture = rt3;
+            mon3.material = mon3mat;
+            mon3.parent = camera;
+            mon3.layerMask = 2;
+           
+            scene.registerBeforeRender(function () {
+                   
+                   camera3.position.y=200;
+                   camera3.position.z= -35;
+                   camera3.position.x= 30;
+                //    camera3.position.x=camera.position.x;
+                //    camera3.position.z=camera.position.z;
+                   camera3.rotation.x=1.4;
+                   camera3.rotation.y=camera.rotation.y;
+                   camera3.rotation.z=camera.rotation.z;
+                   mon3.position = new BABYLON.Vector3(-18.9, 7.8, 25)
+                    // camera3.position.y=250;
+                  //  camera3.alpha = camera.alpha;
+                  // console.log("position  "+mm.position.y)
+
+                  });
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+            //groundMaterial
+            var groundmaterial= new BABYLON.StandardMaterial("ground");
+            groundmaterial.diffuseColor = new BABYLON.Color3.Green();
+
+            //ground
+             var ground = BABYLON.Mesh.CreatePlane("plane",280,scene);
+             ground.material=groundmaterial;
+             ground.position = new BABYLON.Vector3(0,0,0);
+             ground.rotation= new BABYLON.Vector3(Math.PI/2,0,0);
+             ground.checkCollisions=true;
+
+             //road material
+             var roadmat = new BABYLON.StandardMaterial("road");
+             roadmat.diffuseColor = new BABYLON.Color3.Black();
+    
+        //gec-1
+          var box1=BABYLON.Mesh.CreateBox("box1",2,scene);
+          box1.position=new BABYLON.Vector3(-20,5,20);
+          box1.scaling = new BABYLON.Vector3(3,5,3);
+          box1.checkCollisions=true;
+            // addhighlight(box1,"GEc-1")
+            var gec1_r=createRectangle(box1,"GEC-1");
+        addhighlight(box1,gec1_r)
+
+         //road2_ged-1
+         var road10 = BABYLON.Mesh.CreateBox("road10",1,scene);
+        road10.position=new BABYLON.Vector3(-20,0,10);
+        road10.scaling.z=20;
+        road10.scaling.x=5;
+
+        //road1_gec-1
+        var road17 = BABYLON.Mesh.CreateBox("road13",1,scene);
+        road17.position=new BABYLON.Vector3(10,0,20);
+        road17.scaling.x=60;
+        road17.scaling.z=5;
+
+            //road1
+             var road1=BABYLON.Mesh.CreateBox("road1",1,scene);
+             road1.position=new BABYLON.Vector3(10,0,0);
+             road1.scaling.z=280;
+             road1.scaling.x=10;
+            //  road1.material=roadmat;
+
+            //road2
+              var road2=BABYLON.Mesh.CreateBox("road2",1,scene);
+             road2.position=new BABYLON.Vector3(0,0,0);
+             road2.scaling.x=280;
+             road2.scaling.z=10;
+            //  road2.material=roadmat;
+
+            //gec-2
+           var box2=BABYLON.Mesh.CreateBox("box2",4,scene);
+          box2.position=new BABYLON.Vector3(40,5,20);
+          box2.scaling = new BABYLON.Vector3(2,4,2);
+          box2.checkCollisions=true;
+        var gec2_r=createRectangle(box2,"GEC-2");
+        addhighlight(box2,gec2_r)
+
+        //road2_GEC-2
+        var road3 = BABYLON.Mesh.CreateBox("road3",1,scene);
+        road3.position=new BABYLON.Vector3(40,0,10);
+        road3.scaling.z=28;
+        road3.scaling.x=5;
+
+            //ILI
+            var box3=BABYLON.Mesh.CreateBox("box3",4,scene);
+          box3.position=new BABYLON.Vector3(40,2,-40);
+          box3.scaling = new BABYLON.Vector3(5,1,4);
+          box3.checkCollisions=true;
+        // addhighlight(box3,"ILI")     
+        var ili_r=createRectangle(box3,"ILI");
+        addhighlight(box3,ili_r)
+
+         //road2_ILI
+        var road11 = BABYLON.Mesh.CreateBox("road11",1,scene);
+        road11.position=new BABYLON.Vector3(40,0,-20);
+        road11.scaling.z=40;
+        road11.scaling.x=5;   
+
+        //road1_ILI
+        var road21 = BABYLON.Mesh.CreateBox("road21",1,scene);
+            road21.position=new BABYLON.Vector3(25,0,-40);
+            road21.scaling.x=40;
+            road21.scaling.z=5;    
+
+            //Oyasis
+            var box4=BABYLON.Mesh.CreateBox("box4",4,scene);
+          box4.position=new BABYLON.Vector3(-90,2,-40);
+          box4.scaling = new BABYLON.Vector3(5,1,3);
+          box4.checkCollisions=true;
+        // addhighlight(box4,"OYASIS")    
+        var oyasis_r=createRectangle(box4,"OYASIS");
+        addhighlight(box4,oyasis_r)
+
+         //road2_Oyasis
+        var road8 = BABYLON.Mesh.CreateBox("road5",1,scene);
+        road8.position=new BABYLON.Vector3(-90,0,-20);
+        road8.scaling.z=40;
+        road8.scaling.x=5;   
+
+
+            //fiyasta
+            var box5=BABYLON.Mesh.CreateBox("box5",4,scene);
+          box5.position=new BABYLON.Vector3(80,2,20);
+          box5.scaling = new BABYLON.Vector3(5,2,2);
+          box5.checkCollisions=true;
+        // addhighlight(box5,"FIYASTAs")
+        var fiyasta_r=createRectangle(box5,"FIYASTA");
+        addhighlight(box5,fiyasta_r)
+
+        //road2_fiyasta
+        var road4 = BABYLON.Mesh.CreateBox("road4",1,scene);
+        road4.position=new BABYLON.Vector3(80,0,10);
+        road4.scaling.z=28;
+        road4.scaling.x=5;
+
+
+            //My3
+            var box6=BABYLON.Mesh.CreateBox("box6",4,scene);
+          box6.position=new BABYLON.Vector3(-50,2,-80);
+          box6.scaling = new BABYLON.Vector3(3,1,3);
+          box6.checkCollisions=true;
+        // addhighlight(box6,"MY3")  
+        var my3_r=createRectangle(box6,"MY3");
+        addhighlight(box6,my3_r)
+
+         //road2_My3
+         var road7 = BABYLON.Mesh.CreateBox("road7",1,scene);
+        road7.position=new BABYLON.Vector3(-50,0,-40);
+        road7.scaling.z=80;
+        road7.scaling.x=5;
+
+        //road1_my3
+        var road22 = BABYLON.Mesh.CreateBox("road22",1,scene);
+            road22.position=new BABYLON.Vector3(-20,0,-80);
+            road22.scaling.x=50;
+            road22.scaling.z=5; 
+
+            //Enroute
+            var box7=BABYLON.Mesh.CreateBox("box7",2,scene);
+          box7.position=new BABYLON.Vector3(-60,1,60);
+          box7.scaling = new BABYLON.Vector3(4,3,3);
+          box7.checkCollisions=true;
+            // addhighlight(box7,"ENROUTE")
+            var enroute_r=createRectangle(box7,"ENROUTE");
+        addhighlight(box7,enroute_r)
+
+             //road2_Enroute
+        var road9 = BABYLON.Mesh.CreateBox("road9",1,scene);
+        road9.position=new BABYLON.Vector3(-60,0,30);
+        road9.scaling.z=60;
+        road9.scaling.x=5;
+
+        //road1_enroute
+            var road18 = BABYLON.Mesh.CreateBox("road18",1,scene);
+            road18.position=new BABYLON.Vector3(-25,0,60);
+            road18.scaling.x=60;
+            road18.scaling.z=5;
+
+            //hospital
+            var box8=BABYLON.Mesh.CreateBox("box8",4,scene);
+          box8.position=new BABYLON.Vector3(70,2,-90);
+          box8.scaling = new BABYLON.Vector3(4,4,4);
+          box8.checkCollisions=true;
+        //  addhighlight(box8,"HOSPITAL")  
+        var hospital_r=createRectangle(box8,"HOSPITAL");
+        addhighlight(box8,hospital_r)
+
+          //road2_hospital
+        var road12 = BABYLON.Mesh.CreateBox("road12",1,scene);
+        road12.position=new BABYLON.Vector3(70,0,-45);
+        road12.scaling.z=90;
+        road12.scaling.x=5; 
+
+        //road1_hospital
+        var road20 = BABYLON.Mesh.CreateBox("road20",1,scene);
+            road20.position=new BABYLON.Vector3(40,0,-90);
+            road20.scaling.x=70;
+            road20.scaling.z=5;
+
+         //ECC-88
+         var box9=BABYLON.Mesh.CreateBox("box9",4,scene);
+          box9.position=new BABYLON.Vector3(60,5,70);
+          box9.scaling = new BABYLON.Vector3(2,5,2);
+          box9.checkCollisions=true;
+        // addhighlight(box9,"ECC-88")
+        var ecc88_r=createRectangle(box9,"ECC-88");
+        addhighlight(box9,ecc88_r)
+
+        //road2_ECC-88
+        var road5 = BABYLON.Mesh.CreateBox("road5",1,scene);
+        road5.position=new BABYLON.Vector3(60,0,35);
+        road5.scaling.z=60;
+        road5.scaling.x=5;
+
+         //road1_ECC-88
+         var road19 = BABYLON.Mesh.CreateBox("road19",1,scene);
+            road19.position=new BABYLON.Vector3(35,0,70);
+            road19.scaling.x=60;
+            road19.scaling.z=5;
+
+        //ECC-49
+        var box10=BABYLON.Mesh.CreateBox("box10",4,scene);
+          box10.position=new BABYLON.Vector3(-30,5,-60);
+          box10.scaling = new BABYLON.Vector3(2,5,2);
+          box10.checkCollisions=true;
+        // addhighlight(box10,"ECC-49")  
+        var ecc49_r=createRectangle(box10,"ECC-49");
+        addhighlight(box10,ecc49_r)
+
+         //road2_ECC-49
+         var road6 = BABYLON.Mesh.CreateBox("road6",1,scene);
+        road6.position=new BABYLON.Vector3(-30,0,-30);
+        road6.scaling.z=60;
+        road6.scaling.x=5;
+
+        //road_ECC49
+        var road23 = BABYLON.Mesh.CreateBox("road23",1,scene);
+            road23.position=new BABYLON.Vector3(-10,0,-60);
+            road23.scaling.x=30;
+            road23.scaling.z=5; 
+       
+            var border1 = BABYLON.Mesh.CreateBox("border1",1,scene);
+            border1.position = new BABYLON.Vector3(140,3,0);
+            border1.checkCollisions=true;
+            border1.scaling.z=280;
+            border1.scaling.y=6;
+
+            var border2 = BABYLON.Mesh.CreateBox("border2",1,scene);
+            border2.position = new BABYLON.Vector3(-140,3,0);
+            border2.checkCollisions=true;
+            border2.scaling.z=280;
+            border2.scaling.y=6;
+
+            var border3 = BABYLON.Mesh.CreateBox("border3",1,scene);
+            border3.position = new BABYLON.Vector3(0,3,140);
+            border3.checkCollisions=true;
+            border3.scaling.x=280;
+            border3.scaling.y=6;
+
+            var border4 = BABYLON.Mesh.CreateBox("border4",1,scene);
+            border4.position = new BABYLON.Vector3(0,3,-140);
+            border4.checkCollisions=true;
+            border4.scaling.x=280;
+            border4.scaling.y=6;
+         //  var manager = new BABYLON.GUI.GUI3DManager(scene);
+            //  advancedTexture.addControl(manager);
+        //  var panel = new BABYLON.GUI.StackPanel();
+        //  panel.verticalAlignment=BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+        
+        //  var button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Top View");
+        //     button1.width = "150px"
+        //     button1.height = "100px";
+         
+        //     advancedTexture.addControl(panel);
+        //     panel.addControl(button1);
+
+
+            
+    var clicks=0
+    var url="copter.jpg"
+    var button = BABYLON.GUI.Button.CreateSimpleButton("but");
+    button.width = "80px";
+    button.height = "60px";
+    button.cornerRadius=10
+    var image=new BABYLON.GUI.Image("image","cycle.png");
+    
+    button.addControl(image)
+
+    button.onPointerUpObservable.add(function(){
+        clicks++
+        if(clicks%2!=0)
+        {
+            // var image=new BABYLON.GUI.Image("image1","heli.jpg");
+            // button.addControl(image)
+            camera.applyGravity=false;
+        camera.position = new BABYLON.Vector3(0,50,-270);
+        camera.rotation = new BABYLON.Vector3(0,0,0);
+           
+            // camera.setTarget=new BABYLON.Vector3.Zero();
+            // camera3.attachControl(canvas,true);
+        }
+        else
+        {
+            // var image=new BABYLON.GUI.Image("image","cycle.png");
+            // button.addControl(image1)
+            camera.applyGravity=true;
+            camera.position = new BABYLON.Vector3(0,8,-40);
+        }
+    })
+    button.horizontalAlignment=BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+    button.verticalAlignment= BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
+    
+    advancedTexture.addControl(button);   
+
+    //highlight
+    var highlight=new BABYLON.HighlightLayer("highlight",scene)
+   function createRectangle(object,name)
+   {
+       var rect=new BABYLON.GUI.Rectangle();
+       rect.width="80px";
+       rect.height="40px";
+       rect.background="red";
+        var label = new BABYLON.GUI.TextBlock();
+        label.text = name;
+        rect.addControl(label);
+        advancedTexture.addControl(rect);
+       rect.linkWithMesh(object);
+       rect.isVisible=false;
+       return rect;
+   }
+    var i=0;
+    console.log("hi")
+     function addhighlight(object,rr)
+    {
+       object.actionManager = new BABYLON.ActionManager(scene);
+        // show
+         object.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+       BABYLON.ActionManager.OnPointerOverTrigger, function () {
+        highlight.addMesh(object,new BABYLON.Color3(220,215,48))
+        rr.isVisible=true;
+        }
+        )   
+        )
+        // hide
+        object.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(
+            BABYLON.ActionManager.OnPointerOutTrigger, function () {
+         highlight.removeMesh(object)
+         rr.isVisible=false;
+          }
+        )
+        )
+     }
+     console.log("end");
+
+     
+
+     //food button
+     function highlights(object,rr)
+     {
+        highlight.addMesh(object,new BABYLON.Color3(220,215,48))
+        rr.isVisible=true;
+     }
+
+     function rhighlights(object,rr)
+     {
+        highlight.removeMesh(object)
+         rr.isVisible=false;
+     }
+  
+
+     //food
+     var rect = new BABYLON.GUI.Rectangle();
+            rect.width="570px";
+            rect.height="120px";
+            advancedTexture.addControl(rect);
+            rect.verticalAlignment=BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
+            rect.thickness=0;
+            rect.onPointerEnterObservable.add(function() {
+                // rect.addControl(grid);
+            })
+            rect.onPointerOutObservable.add(function() {
+                search.text="Search..."
+                food.isVisible=false;
+                ili_button.isVisible=false;
+                oasis_button.isVisible=false;
+                gec.isVisible=false;
+                gec1.isVisible=false;
+                gec2.isVisible=false;
+                ecc.isVisible=false;
+                gate.isVisible=false;
+            })
+            var grid = new BABYLON.GUI.Grid();   
+            // grid.background = "white"; 
+            rect.addControl(grid); 
+            
+            grid.width = "570px";
+            grid.height = "120px";
+            // grid.verticalAlignment=BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
+            grid.addColumnDefinition(100, true);
+            grid.addColumnDefinition(100,true);
+            grid.addColumnDefinition(170,true);
+            grid.addColumnDefinition(100, true);
+             grid.addColumnDefinition(100, true);
+            grid.addRowDefinition(40);
+            grid.addRowDefinition(40);
+            grid.addRowDefinition(40);
+            // grid.isVisible=false;
+          
+            var createbutton = function(name,visible,row,column) {
+                var button =  BABYLON.GUI.Button.CreateSimpleButton("but",name);
+                button.width = "90px";
+                button.height = "40px";
+                button.isVisible=visible;
+                grid.addControl(button, row,column); 
+                return button;
+            }
+            //gate
+            var gate = createbutton("Gate",false,0,0);
+        
+            //food
+             var food = createbutton("Food",false,0,1);
+             var food_click=0;
+            food.onPointerClickObservable.add(function() {
+                if(food_click%2 == 1)
+                {
+                 ili_button.isVisible=false;
+                 oasis_button.isVisible=false;
+                }
+                else
+                {
+                    ili_button.isVisible=true;
+                    oasis_button.isVisible=true;
+                }
+                food_click++;
+            })
+            // food.onPointerEnterObservable.add(function() {
+            //     ili_button.isVisible=true;
+            // })
+           var ili_button = createbutton("ILI",false,1,1);
+            var oasis_button =createbutton("OASIS",false,2,1);   
+        
+            //search
+             var search = new BABYLON.GUI.InputText();
+            search.width="150px";
+            search.height="20px";
+            search.background="Black";
+            search.color="White";
+            search.text="Search..."
+           grid.addControl(search,0,2);
+           search.onPointerEnterObservable.add(function() {
+               search.text="";
+               food.isVisible=true;
+               gec.isVisible=true;
+               ecc.isVisible=true;
+               gate.isVisible=true;
+           })
+        
+           //gec
+           var gec = createbutton("GEC",false,0,3);
+           var gec_click=0;
+            gec.onPointerClickObservable.add(function() {
+                if(gec_click%2 == 0)
+                {
+                     gec1.isVisible=true;
+                     gec2.isVisible=true;
+                }
+                else
+                {
+                    gec1.isVisible=false;
+                    gec2.isVisible=false;
+                }
+                gec_click++;
+            })
+           var gec1 = createbutton("GEC-1",false,1,3);
+           var gec2 = createbutton("GEC-2",false,2,3);
+        
+            //ecc
+            var ecc = createbutton("ECC",false,0,4);
+   
+    // food.onPointerClickObservable.add(function() {
+    //     food_click++;
+    //    if(food_click %2 ==1)
+    //    {
+    //     camera.applyGravity=false;
+    //     camera.position = new BABYLON.Vector3(0,50,-270);
+    //     camera.rotation = new BABYLON.Vector3(0,0,0);
+    //     // camera.setTarget = new BABYLON.Vector3(0,0,0);
+    //     highlights(box3,ili_r)
+    //      highlights(box4,oyasis_r)
+    //      highlights(box5,fiyasta_r)
+    //     highlights(box6,my3_r)
+    //      highlights(box7,enroute_r)
+    //    }
+    //    if(food_click %2 ==0)
+    //    {
+    //     rhighlights(box3,ili_r)
+    //      rhighlights(box4,oyasis_r)
+    //      rhighlights(box5,fiyasta_r)
+    //     rhighlights(box6,my3_r)
+    //      rhighlights(box7,enroute_r)
+    //    }
+       
+
+    // })
+   function remove(obj,robj)
+   {
+    highlight.removeMesh(obj)
+    obj.dispose();
+   
+   }
+  
+
+     ///////////////////////////
+            return scene;
+        }
+        
+        engine = createDefaultEngine();
+        if (!engine) throw 'engine should not be null.';
+        scene = createScene();
+        
+        engine.runRenderLoop(function () {
+            if (scene) {
+                scene.render();
+            }
+        });
+
+      
+    </script>
+</body>
+</html>
